@@ -1,0 +1,42 @@
+version: "3"
+services:
+  elastic:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.9.2
+    container_name: EFK_elastic
+    ports:
+      - 9200:9200
+    volumes:
+      - data:/usr/share/elasticsearch/data
+    networks:
+      - EFK_network
+    environment:
+      - node.name=EFK_elastic
+      - cluster.name=es-docker-cluster
+      - cluster.initial_master_nodes=EFK_elastic
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:7.9.2
+    container_name: EFK_kibana
+    ports:
+      - 5601:5601
+    environment:
+      ELASTICSEARCH_URL: http://EFK_elastic:9200
+      ELASTICSEARCH_HOSTS: http://EFK_elastic:9200
+    networks:
+      - EFK_network
+    depends_on:
+      - elastic
+
+volumes:
+  data:
+    driver: local
+
+networks:
+  EFK_network:
+    driver: bridge
