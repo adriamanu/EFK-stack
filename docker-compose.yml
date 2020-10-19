@@ -4,7 +4,7 @@ services:
     image: docker.elastic.co/elasticsearch/elasticsearch:7.9.2
     container_name: EFK_elastic
     ports:
-      - 9200:9200
+      - "9200:9200"
     volumes:
       - data:/usr/share/elasticsearch/data
     networks:
@@ -24,7 +24,7 @@ services:
     image: docker.elastic.co/kibana/kibana:7.9.2
     container_name: EFK_kibana
     ports:
-      - 5601:5601
+      - "5601:5601"
     environment:
       ELASTICSEARCH_URL: http://EFK_elastic:9200
       ELASTICSEARCH_HOSTS: http://EFK_elastic:9200
@@ -32,6 +32,21 @@ services:
       - EFK_network
     depends_on:
       - elastic
+
+  fluentd:
+    build:
+      context: ./fluentd
+      dockerfile: fluentd.Dockerfile
+    volumes:
+      - ./fluentd/conf:/fluentd/etc
+    ports:
+      - "24224:24224"
+      - "24224:24224/udp"
+    depends_on:
+      - elastic
+      - kibana
+    networks:
+      - EFK_network
 
 volumes:
   data:
