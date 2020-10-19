@@ -1,3 +1,4 @@
+# https://docs.fluentd.org/v/0.12/container-deployment/docker-compose
 version: "3"
 services:
   elastic:
@@ -42,11 +43,27 @@ services:
     ports:
       - "24224:24224"
       - "24224:24224/udp"
+      - "9880:9880"
     depends_on:
       - elastic
       - kibana
     networks:
       - EFK_network
+
+  node-app:
+    build:
+      context: ./node-app
+      dockerfile: node-app.Dockerfile
+    ports:
+      - "3001:3000"
+    depends_on:
+      - fluentd
+    networks:
+      - EFK_network
+    logging:
+      driver: "fluentd"
+      options:
+        fluentd-address: localhost:24224      
 
 volumes:
   data:
